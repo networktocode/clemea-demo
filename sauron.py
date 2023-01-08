@@ -1,6 +1,6 @@
 import time
 import signal
-from typing import List
+from typing import List, Optional
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event
 
@@ -20,6 +20,14 @@ BGP_STATES = {
     2: "Connect",
     1: "Idle",
 }
+
+
+def sizeof_fmt(num, suffix="bps"):
+    for unit in ["", "K", "M", "G", "T", "P", "E", "Z"]:
+        if abs(num) < 1000.0:
+            return f"{num:3.1f}{unit}{suffix}"
+        num /= 1000.0
+    return f"{num:.1f}Yi{suffix}"
 
 
 @app.command()
@@ -48,15 +56,45 @@ def get_bgp_state(
         typer.echo(message=f"BGP State for device: {_device} - neighbor {_neighbor} => {BGP_STATES[state_code]}")
 
 
+@app.command()
+def get_links_high_on_bw(
+    device: Optional[str] = typer.Option("", help="Network device or regular expression for multiple devices"),
+    device_role: Optional[str] = typer.Option("", help="Role fo the device(s) in the network topology"),
+    threshold: float = typer.Option(1000.0, help="Bandwidth threshold on bits per second"),
+):
+    typer.echo("Getting links with Bandwidth higher than threshold")
+    # Prepare the labels to help filtering out the latest metrics
+    query = ""
+    if device:
+        query = f'rate(interface_in_octets{{device=~"{device}"}}[2m])*8 > {threshold}'
+    if device_role:
+        query = f'rate(interface_in_octets{{device_role="{device_role}"}}[2m])*8 > {threshold}'
+    if not query:
+        typer.echo(message="No query generated :(")
+        raise typer.Exit(1)
+
+    # Get a list of all the latest metrics that matches the name and label set
+    results = prom.custom_query(query=query)
+    if not results:
+        typer.echo(message="No results returned :(")
+        raise typer.Exit(1)
+
+    # Print out the results
+    for metric in results:
+        _role = metric["metric"]["device_role"]
+        _device = metric["metric"]["device"]
+        _interface = metric["metric"]["interface"]
+        _traffic = sizeof_fmt(float(metric["value"][-1]))
+        typer.echo(message=f"Role: {device_role} - device: {_device} - interface: {_interface} => Traffic IN: {_traffic}")
+    return
+
+
+@app.command()
+def get_links_with_packet_loss():
+    return
+
+
 ########################################################################################################################
-
-
-def sizeof_fmt(num, suffix="bps"):
-    for unit in ["", "K", "M", "G", "T", "P", "E", "Z"]:
-        if abs(num) < 1000.0:
-            return f"{num:3.1f}{unit}{suffix}"
-        num /= 1000.0
-    return f"{num:.1f}Yi{suffix}"
 
 
 progress = Progress(
