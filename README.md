@@ -21,3 +21,11 @@ TBD
 ## CLI Scripts
 
 TBD
+
+### Sauron example
+
+![Sauron Help](docs/images/sauron-help.png)
+
+![Sauron script for getting links with high bandwidth](docs/images/sauron-links-high.png)
+
+![Sauron progress bar script for watching interface bandwidth](docs/images/sauron-watch-intf.png)
