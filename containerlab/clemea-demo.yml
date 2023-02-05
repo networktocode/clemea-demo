@@ -1,5 +1,5 @@
 # yamllint disable-file
-name: kitt
+name: clemea-demo
 prefix: ""  # Empty string to not add a prefix to the containers
 
 mgmt:
