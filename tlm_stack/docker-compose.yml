@@ -1,0 +1,99 @@
+# yamllint disable-file
+---
+
+
+volumes:
+  prometheus-01_data:
+  grafana-01_data:
+
+networks:
+  clemea-demo-network:
+    external:
+      name: clemea-demo-network
+
+version: "3.8"
+services:
+
+
+  prometheus-01:
+    image: docker.io/prom/prometheus:latest
+    ports:
+      - 9091:9090
+    command: --storage.tsdb.retention.size=512MB --config.file=/etc/prometheus/prometheus.yml
+    tty: true
+    volumes:
+      - ./configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-01_data:/prometheus
+    env_file:
+      - .env
+    networks:
+      - clemea-demo-network
+
+
+  grafana-01:
+    image: docker.io/grafana/grafana:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - ./configs/grafana/datasources.yml:/etc/grafana/provisioning/datasources/all.yml
+      - ./configs/grafana/grafana.ini:/etc/grafana/grafana.ini
+      - grafana-01_data:/grafana
+    environment:
+      GF_INSTALL_PLUGINS: natel-discrete-panel
+    env_file:
+      - .env
+    networks:
+      - clemea-demo-network
+
+
+  telegraf-nyc-bb-01:
+    image: docker.io/networktocode/network-agent:latest
+    command: telegraf --config /etc/telegraf/telegraf.conf
+    tty: true
+    volumes:
+      - ./configs/telegraf/telegraf-nyc-bb-01.conf.toml:/etc/telegraf/telegraf.conf
+    ports:
+      - 9007:9007
+    env_file:
+      - .env
+    networks:
+      - clemea-demo-network
+
+  telegraf-jcy-bb-01:
+    image: docker.io/networktocode/network-agent:latest
+    command: telegraf --config /etc/telegraf/telegraf.conf
+    tty: true
+    volumes:
+      - ./configs/telegraf/telegraf-jcy-bb-01.conf.toml:/etc/telegraf/telegraf.conf
+    ports:
+      - 9004:9004
+    env_file:
+      - .env
+    networks:
+      - clemea-demo-network
+
+  telegraf-jcy-rtr-01:
+    image: docker.io/networktocode/network-agent:latest
+    command: telegraf --config /etc/telegraf/telegraf.conf
+    tty: true
+    volumes:
+      - ./configs/telegraf/telegraf-jcy-rtr-01.conf.toml:/etc/telegraf/telegraf.conf
+    ports:
+      - 9005:9005
+    env_file:
+      - .env
+    networks:
+      - clemea-demo-network
+
+  telegraf-jcy-rtr-02:
+    image: docker.io/networktocode/network-agent:latest
+    command: telegraf --config /etc/telegraf/telegraf.conf
+    tty: true
+    volumes:
+      - ./configs/telegraf/telegraf-jcy-rtr-02.conf.toml:/etc/telegraf/telegraf.conf
+    ports:
+      - 9006:9006
+    env_file:
+      - .env
+    networks:
+      - clemea-demo-network

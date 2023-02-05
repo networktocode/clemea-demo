@@ -1,0 +1,9 @@
+# yamllint disable-file
+# TODO: To delete the yamllint disable on a next iteration
+---
+apiVersion: 1
+
+datasources:
+- name: prometheus-01
+  type: prometheus
+  url: http://prometheus-01:9090

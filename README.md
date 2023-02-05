@@ -8,6 +8,8 @@ Optionally you can setup a Nautobot instance that hold extra information of the 
 
 ## Setup Network Lab (containerlab)
 
+![Lab Topology](docs/images/lab-topology.png)
+
 TBD
 
 ## Setup Telemtry Stack (TPG)

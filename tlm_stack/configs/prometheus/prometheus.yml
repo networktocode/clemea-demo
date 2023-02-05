@@ -1,0 +1,20 @@
+# yamllint disable-file
+---
+global:
+  scrape_interval: 15s
+
+
+scrape_configs:
+
+- job_name: "prometheus"
+  scrape_interval: 15s
+  static_configs:
+    - targets: ["localhost:9090"]
+- job_name: "telegraf"
+  scrape_interval: 60s
+  static_configs:
+  - targets:
+    - "telegraf-nyc-bb-01:9007"
+    - "telegraf-jcy-bb-01:9004"
+    - "telegraf-jcy-rtr-01:9005"
+    - "telegraf-jcy-rtr-02:9006"

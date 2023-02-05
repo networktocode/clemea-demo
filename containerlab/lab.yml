@@ -1,0 +1,67 @@
+# yamllint disable-file
+name: kitt
+prefix: ""  # Empty string to not add a prefix to the containers
+
+mgmt:
+ network: clemea-demo-network
+ ipv4_subnet: 172.24.77.0/24
+
+topology:
+  kinds:
+    # vr-csr:
+    #   image: vr-csr:17.01.01
+    ceos:
+      image: ceos:4.28.5.1M
+  nodes:
+    netpanda-jcy-bb-01:
+      kind: ceos
+      # kind: vr-csr
+      mgmt_ipv4: 172.24.77.11
+      startup-config: startups/netpanda-jcy-bb-01.conf
+      publish:
+        - tcp/50051
+        - tcp/80
+        - tcp/443
+        - udp/161
+    netpanda-jcy-rtr-01:
+      kind: ceos
+      # kind: vr-csr
+      mgmt_ipv4: 172.24.77.12
+      startup-config: startups/netpanda-jcy-rtr-01.conf
+      publish:
+        - tcp/50051
+        - tcp/80
+        - tcp/443
+        - udp/161
+      # ports:
+      #   - 51161:161/udp
+    netpanda-jcy-rtr-02:
+      kind: ceos
+      # kind: vr-csr
+      mgmt_ipv4: 172.24.77.13
+      startup-config: startups/netpanda-jcy-rtr-02.conf
+      publish:
+        - tcp/50051
+        - tcp/80
+        - tcp/443
+        - udp/161
+      # ports:
+      #   - 51161:161/udp
+    netpanda-nyc-bb-01:
+      kind: ceos
+      # kind: vr-csr
+      mgmt_ipv4: 172.24.77.14
+      startup-config: startups/netpanda-nyc-bb-01.conf
+      publish:
+        - tcp/50051
+        - tcp/80
+        - tcp/443
+        - udp/161
+      # ports:
+      #   - 51161:161/udp
+
+  links:
+    - endpoints: ["netpanda-jcy-bb-01:eth2", "netpanda-jcy-rtr-01:eth2"]
+    - endpoints: ["netpanda-jcy-bb-01:eth3", "netpanda-jcy-rtr-02:eth3"]
+    - endpoints: ["netpanda-jcy-bb-01:eth4", "netpanda-nyc-bb-01:eth3"]
+    - endpoints: ["netpanda-jcy-rtr-01:eth4", "netpanda-jcy-rtr-02:eth4"]
