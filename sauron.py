@@ -10,7 +10,7 @@ from rich.progress import Progress, TextColumn, BarColumn, TimeRemainingColumn, 
 import typer
 
 app = typer.Typer()
-prom = PrometheusConnect(url="http://netpanda-dev:9091", disable_ssl=True)
+prom_url = {"url": "http://localhost:9091"}
 
 BGP_STATES = {
     6: "Established",
@@ -43,6 +43,7 @@ def get_bgp_state(
         labelset.update(device=device)
 
     # Get a list of all the latest metrics that matches the name and label set
+    prom = PrometheusConnect(url=prom_url["url"], disable_ssl=True)
     results = prom.get_current_metric_value(metric_name="bgp_session_state", label_config=labelset)
     if not results:
         typer.echo(message="No results returned :(")
@@ -57,7 +58,7 @@ def get_bgp_state(
 
 
 @app.command()
-def get_links_high_on_bw(
+def get_links_high_on_in_bw(
     device: Optional[str] = typer.Option("", help="Network device or regular expression for multiple devices"),
     device_role: Optional[str] = typer.Option("", help="Role fo the device(s) in the network topology"),
     threshold: float = typer.Option(1000.0, help="Bandwidth threshold on bits per second"),
@@ -74,6 +75,7 @@ def get_links_high_on_bw(
         raise typer.Exit(1)
 
     # Get a list of all the latest metrics that matches the name and label set
+    prom = PrometheusConnect(url=prom_url["url"], disable_ssl=True)
     results = prom.custom_query(query=query)
     if not results:
         typer.echo(message="No results returned :(")
@@ -123,6 +125,7 @@ def get_interface_traffic(task_id: TaskID, interface: str, device: str):
     query = f'rate(interface_in_octets{{device="{device}", interface="{interface}"}}[2m])*8'
     progress.update(task_id, total=100)
     progress.start_task(task_id)
+    prom = PrometheusConnect(url=prom_url["url"], disable_ssl=True)
     for i in range(100):
         result = prom.custom_query(query=query)
         traffic = float(result[0]["value"][-1])
@@ -144,6 +147,18 @@ def watch_interface_traffic(
             for intf in interface:
                 task_id = progress.add_task("interface", interface_id=f"{device}: {intf}", start=False, traffic=sizeof_fmt(0))
                 pool.submit(get_interface_traffic, task_id, intf, device)
+
+
+@app.callback()
+def main(
+    prometheus_host: str = typer.Option(
+        "http://localhost:9091", "--prometheus-host", "-p", help="Prometheus server to connect"
+    )
+):
+    """
+    Manage users in the awesome CLI app.
+    """
+    prom_url["url"] = prometheus_host
 
 
 if __name__ == "__main__":
