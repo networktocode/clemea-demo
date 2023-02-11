@@ -68,7 +68,7 @@ def get_links_high_on_in_bw(
     query = ""
     if device:
         query = f'rate(interface_in_octets{{device=~"{device}"}}[2m])*8 > {threshold}'
-    if device_role:
+    elif device_role:
         query = f'rate(interface_in_octets{{device_role="{device_role}"}}[2m])*8 > {threshold}'
     if not query:
         typer.echo(message="No query generated :(")
